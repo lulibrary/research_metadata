@@ -20,27 +20,61 @@ module ResearchMetadata
         @dataset = extract uuid: uuid, id: id
         raise 'No metadata to transform' if @dataset.metadata.empty?
         person_o = person
+        file_o = file
         resource = ::Datacite::Mapping::Resource.new(
             identifier: identifier(doi),
             creators: person_o['creator'],
             titles: [ title ],
             publisher: publisher,
-            publication_year: publication_year
+            publication_year: publication_year,
+            subjects: subjects,
+            contributors: person_o['contributor'],
+            dates: dates,
+            resource_type: resource_type,
+            related_identifiers: related_identifiers,
+            sizes: file_o.map { |i| i['size'] },
+            formats: file_o.map { |i| i['mime'] },
+            rights_list: file_o.map { |i| i['license']['name'] },
+            descriptions: [ description ],
+            geo_locations: spatial
         )
-        resource.contributors = person_o['contributor']
-        resource.descriptions = [ description ]
-        resource.dates = dates
-        resource.subjects = subjects
-        file_o = file
-        resource.sizes = file_o.map { |i| i['size'] }
-        resource.formats = file_o.map { |i| i['mime'] }
-        resource.rights_list = file_o.map { |i| i['license']['name'] }
-        resource.geo_locations = spatial
-        # resource.related_identifiers = related_identifiers
         resource.write_xml
       end
 
       private
+
+      def affiliations(person)
+        person.affiliation.map { |i| i['name'] }
+      end
+
+      def dates
+        a = []
+        available = ::Datacite::Mapping::Date.new value: Puree::Date.iso(@dataset.available),
+                                                  type: ::Datacite::Mapping::DateType::AVAILABLE
+        a << available
+
+        temporal = @dataset.temporal
+        temporal_range = ''
+        if !temporal['start']['year'].empty?
+          temporal_range << Puree::Date.iso(temporal['start'])
+          if !temporal['end']['year'].empty?
+            temporal_range << '/'
+            temporal_range << Puree::Date.iso(temporal['end'])
+          end
+          if !temporal_range.empty?
+            collected = ::Datacite::Mapping::Date.new value: temporal_range,
+                                                      type: ::Datacite::Mapping::DateType::COLLECTED
+            a << collected
+          end
+        end
+
+        a
+      end
+
+      def description
+        ::Datacite::Mapping::Description.new value: @dataset.description,
+                                             type: ::Datacite::Mapping::DescriptionType::ABSTRACT
+      end
 
       def extract(uuid: nil, id: nil)
         d = Puree::Dataset.new
@@ -52,8 +86,22 @@ module ResearchMetadata
         d
       end
 
+      def file
+        @dataset.file
+      end
+
       def identifier(doi)
         ::Datacite::Mapping::Identifier.new(value: doi)
+      end
+
+      def name_identifier_orcid(person)
+        name_identifier = nil
+        if !person.orcid.empty?
+          name_identifier = ::Datacite::Mapping::NameIdentifier.new  scheme: 'ORCID',
+                                                                   scheme_uri: URI('http://orcid.org/'),
+                                                                   value: person.orcid
+        end
+        name_identifier
       end
 
       def person
@@ -75,7 +123,7 @@ module ResearchMetadata
                 pure_role = 'Other' if pure_role === 'Contributor'
                 contributor_type = ::Datacite::Mapping::ContributorType.find_by_value pure_role
                 human = ::Datacite::Mapping::Contributor.new  name: name,
-                                                            type: contributor_type
+                                                              type: contributor_type
               end
 
               identifier = name_identifier_orcid(person)
@@ -95,93 +143,22 @@ module ResearchMetadata
         o
       end
 
-      def name_identifier_orcid(person)
-        name_identifier = nil
-        if !person.orcid.empty?
-          name_identifier = ::Datacite::Mapping::NameIdentifier.new  scheme: 'ORCID',
-                                                                   scheme_uri: URI('http://orcid.org/'),
-                                                                   value: person.orcid
-        end
-        name_identifier
-      end
-
-      def affiliations(person)
-        person.affiliation.map { |i| i['name'] }
-      end
-
-      def title
-        ::Datacite::Mapping::Title.new value: @dataset.title
+      def publication_year
+        @dataset.available['year']
       end
 
       def publisher
         @dataset.publisher
       end
 
-      def publication_year
-        @dataset.available['year']
-      end
-
-      def description
-        ::Datacite::Mapping::Description.new value: @dataset.description,
-                                           type: ::Datacite::Mapping::DescriptionType::ABSTRACT
-      end
-
-      def dates
-        a = []
-        available = ::Datacite::Mapping::Date.new value: Puree::Date.iso(@dataset.available),
-                                                type: ::Datacite::Mapping::DateType::AVAILABLE
-        a << available
-
-        temporal = @dataset.temporal
-        temporal_range = ''
-        if !temporal['start']['year'].empty?
-          temporal_range << Puree::Date.iso(temporal['start'])
-          if !temporal['end']['year'].empty?
-            temporal_range << '/'
-            temporal_range << Puree::Date.iso(temporal['end'])
-          end
-          if !temporal_range.empty?
-            collected = ::Datacite::Mapping::Date.new value: temporal_range,
-                                                      type: ::Datacite::Mapping::DateType::COLLECTED
-            a << collected
-          end
-        end
-
-        a
-      end
-
-      def subjects
-        @dataset.keyword.map { |i| ::Datacite::Mapping::Subject.new value: i }
-      end
-
-      def file
-        @dataset.file
-      end
-
-      def spatial
-        # Pure has free text to list place names and does not allow a point to be associated with a specific place
-        # Place names
-        arr = @dataset.spatial.map { |i| ::Datacite::Mapping::GeoLocation.new place: i }
-
-        # Lat Long point
-        spatial_point = @dataset.spatial_point
-        if !spatial_point.empty?
-          point = ::Datacite::Mapping::GeoLocationPoint.new latitude:  spatial_point['latitude'],
-                                                            longitude: spatial_point['longitude']
-          geolocation = ::Datacite::Mapping::GeoLocation.new point: point
-          arr << geolocation
-        end
-        arr
-      end
-
-      # There is no way in Pure UI to provide relationships to other resources,
-      # which makes it difficult to infer specific relationships automatically
       def related_identifiers
         publications = @dataset.publication
         data = []
         publications.each do |i|
           if i['type'] === 'Dataset'
-            pub = Puree::Dataset.new
+            # Do nothing as the relationship cannot currently be determined
+            # pub = Puree::Dataset.new
+            next
           else
             pub = Puree::Publication.new
           end
@@ -200,6 +177,39 @@ module ResearchMetadata
           end
         end
         data
+      end
+
+      def resource_type
+        ::Datacite::Mapping::ResourceType.new(
+            resource_type_general: ::Datacite::Mapping::ResourceTypeGeneral::DATASET,
+            value: 'Dataset'
+        )
+      end
+
+      def spatial
+        # Pure has free text to list place names and does not allow a point to
+        # be associated with a specific place
+
+        # Place names
+        arr = @dataset.spatial.map { |i| ::Datacite::Mapping::GeoLocation.new place: i }
+
+        # Lat Long point
+        spatial_point = @dataset.spatial_point
+        if !spatial_point.empty?
+          point = ::Datacite::Mapping::GeoLocationPoint.new latitude:  spatial_point['latitude'],
+                                                            longitude: spatial_point['longitude']
+          geolocation = ::Datacite::Mapping::GeoLocation.new point: point
+          arr << geolocation
+        end
+        arr
+      end
+
+      def subjects
+        @dataset.keyword.map { |i| ::Datacite::Mapping::Subject.new value: i }
+      end
+
+      def title
+        ::Datacite::Mapping::Title.new value: @dataset.title
       end
 
     end
