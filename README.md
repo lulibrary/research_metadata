@@ -1,6 +1,6 @@
 # ResearchMetadata [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata)
 
-Extraction (from Pure) and Transformation for Loading by DataCite's API.
+Extraction and Transformation for Loading by DataCite's API.
 
 ## Installation
 
@@ -36,9 +36,16 @@ Create a metadata transformer for a Pure dataset...
 transformer = ResearchMetadata::Transformer::Dataset.new
 ```
 
-...and give it a Pure identifier and a DOI.
+...and give it a Pure identifier and a DOI...
 
 ```ruby
 metadata = transformer.transform uuid: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
                                  doi: '10.1234/foo/bar/1'
 ```
+
+...to get DataCite-ready metadata.
+
+## Documentation
+[API in YARD](http://www.rubydoc.info/gems/research_metadata)
+
+[Detailed usage in GitBook](https://aalbinclark.gitbooks.io/research_metadata)
