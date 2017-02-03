@@ -30,6 +30,7 @@ module ResearchMetadata
             subjects: subjects,
             contributors: person_o['contributor'],
             dates: dates,
+            language: language,
             resource_type: resource_type,
             related_identifiers: related_identifiers,
             sizes: file_o.map { |i| i['size'] },
@@ -92,6 +93,10 @@ module ResearchMetadata
 
       def identifier(doi)
         ::Datacite::Mapping::Identifier.new(value: doi)
+      end
+
+      def language
+        @dataset.locale
       end
 
       def name_identifier_orcid(person)
