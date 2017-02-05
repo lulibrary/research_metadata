@@ -36,7 +36,7 @@ module ResearchMetadata
             sizes: file_o.map { |i| i['size'] },
             formats: file_o.map { |i| i['mime'] },
             rights_list: file_o.map { |i| i['license']['name'] },
-            descriptions: [ description ],
+            descriptions: description,
             geo_locations: spatial
         )
         resource.write_xml
@@ -73,8 +73,14 @@ module ResearchMetadata
       end
 
       def description
-        ::Datacite::Mapping::Description.new value: @dataset.description,
+        desc = @dataset.description
+        if !desc.empty?
+          d = ::Datacite::Mapping::Description.new value: desc,
                                              type: ::Datacite::Mapping::DescriptionType::ABSTRACT
+          [d]
+        else
+          []
+        end
       end
 
       def extract(uuid: nil, id: nil)
@@ -116,33 +122,36 @@ module ResearchMetadata
         person_types = %w(internal external other)
         person_types.each do |person_type|
           @dataset.person[person_type].each do |dataset_person|
-            person = Puree::Person.new
-            person.find uuid: dataset_person['uuid']
-
-            if !person.metadata.empty?
-              name = "#{person.name['last']}, #{person.name['first']}"
-              pure_role = dataset_person['role']
+            pure_role = dataset_person['role'].gsub(/\s+/, '')
+              name = "#{dataset_person['name']['last']}, #{dataset_person['name']['first']}"
               if pure_role == 'Creator'
                 human = ::Datacite::Mapping::Creator.new name: name
               else
                 pure_role = 'Other' if pure_role === 'Contributor'
                 contributor_type = ::Datacite::Mapping::ContributorType.find_by_value pure_role
-                human = ::Datacite::Mapping::Contributor.new  name: name,
-                                                              type: contributor_type
+                if contributor_type
+                  human = ::Datacite::Mapping::Contributor.new  name: name,
+                                                                type: contributor_type
+                end
               end
+              if human
+                if !dataset_person['uuid'].empty?
+                  person = Puree::Person.new
+                  person.find uuid: dataset_person['uuid']
+                  if !person.metadata.empty?
+                    identifier = name_identifier_orcid(person)
+                    human.identifier = identifier if !identifier.nil?
 
-              identifier = name_identifier_orcid(person)
-              human.identifier = identifier if !identifier.nil?
-
-              affiliation = affiliations(person)
-              human.affiliations = affiliation if !affiliation.empty?
-
-              if dataset_person['role'] == 'Creator'
-                o['creator'] << human
-              else
-                o['contributor'] << human
+                    affiliation = affiliations(person)
+                    human.affiliations = affiliation if !affiliation.empty?
+                  end
+                end
+                if dataset_person['role'] == 'Creator'
+                  o['creator'] << human
+                else
+                  o['contributor'] << human
+                end
               end
-            end
           end
         end
         o
@@ -169,7 +178,7 @@ module ResearchMetadata
           end
           pub.find uuid: i['uuid']
           doi = pub.doi
-          if !doi.empty?
+          if doi && !doi.empty?
             doi_part_to_remove = 'http://dx.doi.org/'
             doi_short = doi.gsub(doi_part_to_remove, '')
             doi_short.gsub!('/', '-')
