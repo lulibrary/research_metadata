@@ -20,8 +20,12 @@ describe 'Dataset' do
       setup
     end
 
-    it '#transform with valid UUID' do
-      metadata = @t.transform uuid: ENV['PURE_DATASET_UUID'],
+    it '#transform with random UUID' do
+      c = Puree::Collection.new resource: :dataset
+      res = c.find limit: 1,
+                   offset: rand(0..c.count-1),
+                   full: false
+      metadata = @t.transform uuid: res[0]['uuid'],
                               doi:  '10.1234/foo/bar/1'
       is_xml = metadata.downcase.start_with?('<resource')
       expect(is_xml).to match(true)
