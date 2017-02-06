@@ -1,4 +1,4 @@
-# ResearchMetadata [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata)
+# ResearchMetadata [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata) [![Build Status](https://semaphoreci.com/api/v1/aalbinclark/research_metadata/branches/master/badge.svg)](https://semaphoreci.com/aalbinclark/research_metadata)
 
 Extraction and Transformation for Loading by DataCite's API.
 
