@@ -1,6 +1,13 @@
-# ResearchMetadata [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata) [![Build Status](https://semaphoreci.com/api/v1/aalbinclark/research_metadata/branches/master/badge.svg)](https://semaphoreci.com/aalbinclark/research_metadata) [![Code Climate](https://codeclimate.com/github/lulibrary/research_metadata/badges/gpa.svg)](https://codeclimate.com/github/lulibrary/research_metadata) [![Dependency Status](https://www.versioneye.com/user/projects/58999ccca8605300455cb580/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/58999ccca8605300455cb580)
+# ResearchMetadata
 
 Extraction and Transformation for Loading by DataCite's API.
+
+## Status
+
+[![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata)
+[![Build Status](https://semaphoreci.com/api/v1/aalbinclark/research_metadata/branches/master/badge.svg)](https://semaphoreci.com/aalbinclark/research_metadata)
+[![Code Climate](https://codeclimate.com/github/lulibrary/research_metadata/badges/gpa.svg)](https://codeclimate.com/github/lulibrary/research_metadata)
+[![Dependency Status](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6)
 
 ## Installation
 
