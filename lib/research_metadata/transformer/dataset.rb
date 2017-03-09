@@ -42,8 +42,8 @@ module ResearchMetadata
             language: language,
             resource_type: resource_type,
             related_identifiers: related_identifiers,
-            sizes: file_o.map { |i| i.size },
-            formats: file_o.map { |i| i.mime },
+            sizes: sizes(file_o),
+            formats: formats(file_o),
             rights_list: rights_list(file_o),
             descriptions: description,
             geo_locations: spatial
@@ -53,12 +53,20 @@ module ResearchMetadata
 
       private
 
+      def sizes(files)
+        files.map { |i| i.size }
+      end
+
+      def formats(files)
+        files.map { |i| i.mime }
+      end
+
       def rights_list(files)
         arr = []
         files.each do |i|
           if i.license
-            rights = Datacite::Mapping::Rights.new uri: URI(i.url),
-                                                   value: i.name
+            rights = Datacite::Mapping::Rights.new uri: URI(i.license.url),
+                                                   value: i.license.name
             arr << rights
           else
             arr << 'Not specified'
