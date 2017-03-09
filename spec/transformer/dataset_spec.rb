@@ -3,15 +3,16 @@ require 'spec_helper'
 describe 'Dataset' do
 
   def setup
-    Puree.base_url   = ENV['PURE_BASE_URL']
-    Puree.username   = ENV['PURE_USERNAME']
-    Puree.password   = ENV['PURE_PASSWORD']
-    Puree.basic_auth = true
-    @t = ResearchMetadata::Transformer::Dataset.new
+    config = {
+        url:      ENV['PURE_URL'],
+        username: ENV['PURE_USERNAME'],
+        password: ENV['PURE_PASSWORD']
+    }
+    @t = ResearchMetadata::Transformer::Dataset.new config
   end
 
   it '#new' do
-    t = ResearchMetadata::Transformer::Dataset.new
+    t = ResearchMetadata::Transformer::Dataset.new config
     expect(t).to be_an_instance_of ResearchMetadata::Transformer::Dataset
   end
 

@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '~> 2.1'
 
-  spec.add_runtime_dependency "puree", "~> 0.20.0"
+  spec.add_runtime_dependency "puree", "~> 1.0.0"
   spec.add_runtime_dependency "datacite-mapping", "~> 0.2.5"
 
   spec.add_development_dependency "rspec"

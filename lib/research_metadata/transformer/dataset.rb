@@ -10,6 +10,15 @@ module ResearchMetadata
     #
     class Dataset
 
+      # @param config [Hash]
+      # @option config [String] :url The URL of the Pure host.
+      # @option config [String] :username The username of the Pure host account.
+      # @option config [String] :password The password of the Pure host account.
+      def initialize(config)
+        @config = config
+        @dataset_extractor = Puree::Extractor::Dataset.new config
+      end
+
       # Dataset transformation
       #
       # @param id [String]
@@ -18,7 +27,7 @@ module ResearchMetadata
       # @return [String]
       def transform(id: nil, uuid: nil, doi: nil)
         @dataset = extract uuid: uuid, id: id
-        raise 'No metadata to transform' if @dataset.metadata.empty?
+        raise 'No metadata to transform' if @dataset.nil?
         person_o = person
         file_o = file
         resource = ::Datacite::Mapping::Resource.new(
@@ -33,9 +42,9 @@ module ResearchMetadata
             language: language,
             resource_type: resource_type,
             related_identifiers: related_identifiers,
-            sizes: file_o.map { |i| i['size'] },
-            formats: file_o.map { |i| i['mime'] },
-            rights_list: file_o.map { |i| i['license']['name'] },
+            sizes: file_o.map { |i| i.size },
+            formats: file_o.map { |i| i.mime },
+            rights_list: rights_list(file_o),
             descriptions: description,
             geo_locations: spatial
         )
@@ -44,37 +53,56 @@ module ResearchMetadata
 
       private
 
+      def rights_list(files)
+        arr = []
+        files.each do |i|
+          if i.license
+            rights = Datacite::Mapping::Rights.new uri: URI(i.url),
+                                                   value: i.name
+            arr << rights
+          else
+            arr << 'Not specified'
+          end
+        end
+        arr
+      end
+
       def affiliations(person)
-        person.affiliation.map { |i| i['name'] }
+        person.affiliations.map { |i| i.name }
       end
 
       def dates
         a = []
-        available = ::Datacite::Mapping::Date.new value: Puree::Date.iso(@dataset.available),
-                                                  type: ::Datacite::Mapping::DateType::AVAILABLE
-        a << available
+
+        available = @dataset.available
+        if available
+          date_made_available = ::Datacite::Mapping::Date.new value: available.strftime("%F"),
+                                                    type: ::Datacite::Mapping::DateType::AVAILABLE
+          a << date_made_available
+        end
 
         temporal = @dataset.temporal
         temporal_range = ''
-        if !temporal['start']['year'].empty?
-          temporal_range << Puree::Date.iso(temporal['start'])
-          if !temporal['end']['year'].empty?
-            temporal_range << '/'
-            temporal_range << Puree::Date.iso(temporal['end'])
-          end
-          if !temporal_range.empty?
-            collected = ::Datacite::Mapping::Date.new value: temporal_range,
-                                                      type: ::Datacite::Mapping::DateType::COLLECTED
-            a << collected
+        if temporal
+          if temporal.start
+            temporal_range << temporal.start.strftime("%F")
+            if temporal.end
+              temporal_range << '/'
+              temporal_range << temporal.end.strftime("%F")
+            end
+            if !temporal_range.empty?
+              collected = ::Datacite::Mapping::Date.new value: temporal_range,
+                                                        type: ::Datacite::Mapping::DateType::COLLECTED
+              a << collected
+            end
           end
         end
-
         a
       end
 
       def description
         desc = @dataset.description
-        if !desc.empty?
+        if desc
           d = ::Datacite::Mapping::Description.new value: desc,
                                              type: ::Datacite::Mapping::DescriptionType::ABSTRACT
           [d]
@@ -84,17 +112,15 @@ module ResearchMetadata
       end
 
       def extract(uuid: nil, id: nil)
-        d = Puree::Dataset.new
         if !uuid.nil?
-          d.find uuid: uuid
+          return @dataset_extractor.find uuid: uuid
         else
-          d.find id: id
+          return @dataset_extractor.find id: id
         end
-        d
       end
 
       def file
-        @dataset.file
+        @dataset.files
       end
 
       def identifier(doi)
@@ -107,10 +133,10 @@ module ResearchMetadata
 
       def name_identifier_orcid(person)
         name_identifier = nil
-        if !person.orcid.empty?
-          name_identifier = ::Datacite::Mapping::NameIdentifier.new  scheme: 'ORCID',
-                                                                   scheme_uri: URI('http://orcid.org/'),
-                                                                   value: person.orcid
+        if person.orcid
+          name_identifier = ::Datacite::Mapping::NameIdentifier.new scheme: 'ORCID',
+                                                                    scheme_uri: URI('http://orcid.org/'),
+                                                                    value: person.orcid
         end
         name_identifier
       end
@@ -119,11 +145,14 @@ module ResearchMetadata
         o = {}
         o['creator'] = []
         o['contributor'] = []
-        person_types = %w(internal external other)
-        person_types.each do |person_type|
-          @dataset.person[person_type].each do |dataset_person|
-            pure_role = dataset_person['role'].gsub(/\s+/, '')
-              name = "#{dataset_person['name']['last']}, #{dataset_person['name']['first']}"
+        all_persons = []
+        all_persons << @dataset.persons_internal
+        all_persons << @dataset.persons_external
+        all_persons << @dataset.persons_other
+        all_persons.each do |person_type|
+          person_type.each do |individual|
+            pure_role =individual.role.gsub(/\s+/, '')
+              name = individual.name.last_first
               if pure_role == 'Creator'
                 human = ::Datacite::Mapping::Creator.new name: name
               else
@@ -135,18 +164,18 @@ module ResearchMetadata
                 end
               end
               if human
-                if !dataset_person['uuid'].empty?
-                  person = Puree::Person.new
-                  person.find uuid: dataset_person['uuid']
-                  if !person.metadata.empty?
-                    identifier = name_identifier_orcid(person)
-                    human.identifier = identifier if !identifier.nil?
+                if individual.uuid
+                  person_extractor = Puree::Extractor::Person.new @config
+                  person = person_extractor.find uuid: individual.uuid
+                  if person
+                    identifier = name_identifier_orcid person
+                    human.identifier = identifier if identifier
 
-                    affiliation = affiliations(person)
-                    human.affiliations = affiliation if !affiliation.empty?
+                    affiliation = affiliations person
+                    human.affiliations = affiliation if affiliation
                   end
                 end
-                if dataset_person['role'] == 'Creator'
+                if individual.role == 'Creator'
                   o['creator'] << human
                 else
                   o['contributor'] << human
@@ -158,7 +187,7 @@ module ResearchMetadata
       end
 
       def publication_year
-        @dataset.available['year']
+        @dataset.available.year
       end
 
       def publisher
@@ -166,19 +195,19 @@ module ResearchMetadata
       end
 
       def related_identifiers
-        publications = @dataset.publication
+        publications = @dataset.publications
         data = []
         publications.each do |i|
-          if i['type'] === 'Dataset'
-            # Do nothing as the relationship cannot currently be determined
-            # pub = Puree::Dataset.new
-            next
-          else
-            pub = Puree::Publication.new
-          end
-          pub.find uuid: i['uuid']
-          doi = pub.doi
-          if doi && !doi.empty?
+          # Skip as the relationship cannot currently be determined
+          next if i.type === 'Dataset'
+
+          publication_extractor = Puree::Extractor::Publication.new @config
+          pub = publication_extractor.find uuid: i.uuid
+
+          # Restrict to those with a DOI
+          doi = pub.doi if pub.methods.include? :doi
+
+          if doi
             doi_part_to_remove = 'http://dx.doi.org/'
             doi_short = doi.gsub(doi_part_to_remove, '')
             doi_short.gsub!('/', '-')
@@ -205,13 +234,13 @@ module ResearchMetadata
         # be associated with a specific place
 
         # Place names
-        arr = @dataset.spatial.map { |i| ::Datacite::Mapping::GeoLocation.new place: i }
+        arr = @dataset.spatial_places.map { |i| ::Datacite::Mapping::GeoLocation.new place: i }
 
         # Lat Long point
         spatial_point = @dataset.spatial_point
-        if !spatial_point.empty?
-          point = ::Datacite::Mapping::GeoLocationPoint.new latitude:  spatial_point['latitude'],
-                                                            longitude: spatial_point['longitude']
+        if spatial_point
+          point = ::Datacite::Mapping::GeoLocationPoint.new latitude:  spatial_point.latitude,
+                                                            longitude: spatial_point.longitude
           geolocation = ::Datacite::Mapping::GeoLocation.new point: point
           arr << geolocation
         end
@@ -219,7 +248,7 @@ module ResearchMetadata
       end
 
       def subjects
-        @dataset.keyword.map { |i| ::Datacite::Mapping::Subject.new value: i }
+        @dataset.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
       end
 
       def title
