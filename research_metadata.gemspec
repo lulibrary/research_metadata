@@ -8,9 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = ResearchMetadata::VERSION
   spec.authors       = ["Adrian Albin-Clark"]
   spec.email         = ["a.albin-clark@lancaster.ac.uk"]
-  spec.summary       = %q{Extraction and Transformation for Loading by the DataCite API.}
-  spec.description   = %q{Extraction and Transformation for Loading by the DataCite API.}
-  spec.homepage      = "https://aalbinclark.gitbooks.io/research_metadata"
+  spec.summary       = %q{Metadata extraction from the Pure Research Information System and transformation of the metadata into the DataCite format.}
+  spec.homepage      = "https://github.com/lulibrary/research_metadata"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
