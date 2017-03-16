@@ -24,15 +24,13 @@ module ResearchMetadata
       # @param id [String]
       # @param uuid [String]
       # @param doi [String]
-      # @return [String]
+      # @return [String, nil]
       def transform(id: nil, uuid: nil, doi: nil)
         @publication = extract uuid: uuid, id: id
+        return nil if !@publication
         return nil if !publication_year
-        raise 'No metadata to transform' if !@publication
-        raise 'No publication year' if !publication_year
         person_o = person
         file_o = file
-        puts @publication.uuid
         resource = ::Datacite::Mapping::Resource.new(
             identifier: identifier(doi),
             creators: person_o['creator'],

@@ -4,7 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
-## 1.0.0 2017-03-10
+## 1.0.0 2017-03-15
+### Added
+- Publications e.g. Doctoral/Master's Thesis.
+
 ### Changed
 - Configuration style to match Puree v1.0.0.
 
