@@ -36,7 +36,7 @@ module ResearchMetadata
         resource = ::Datacite::Mapping::Resource.new(
             identifier: identifier(doi),
             creators: person_o['creator'],
-            titles: [ title ],
+            titles: titles,
             publication_year: publication_year,
             publisher: publisher,
             subjects: subjects,
@@ -150,8 +150,8 @@ module ResearchMetadata
               role = 'Other' if pure_role === 'Contributor'
               contributor_type = ::Datacite::Mapping::ContributorType.find_by_value role
               if contributor_type
-                human = ::Datacite::Mapping::Contributor.new  name: name,
-                                                              type: contributor_type
+                human = ::Datacite::Mapping::Contributor.new name: name,
+                                                             type: contributor_type
               end
             end
             if human
@@ -201,8 +201,16 @@ module ResearchMetadata
         @publication.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
       end
 
-      def title
-        ::Datacite::Mapping::Title.new value: @publication.title
+      def titles
+        arr = []
+        title = ::Datacite::Mapping::Title.new value: @publication.title
+        arr << title
+        subtitle = @publication.subtitle
+        if subtitle
+          arr << ::Datacite::Mapping::Title.new(value: subtitle,
+                                                type: ::Datacite::Mapping::TitleType::SUBTITLE)
+        end
+        arr
       end
 
     end
