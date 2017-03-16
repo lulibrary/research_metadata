@@ -54,7 +54,7 @@ module ResearchMetadata
       private
 
       def sizes(files)
-        files.map { |i| i.size }
+        files.map { |i| "#{i.size} B" }
       end
 
       def formats(files)
@@ -65,8 +65,7 @@ module ResearchMetadata
         arr = []
         files.each do |i|
           if i.license
-            rights = Datacite::Mapping::Rights.new uri: URI(i.license.url),
-                                                   value: i.license.name
+            rights = Datacite::Mapping::Rights.new value: i.license.name
             arr << rights
           else
             arr << 'Not specified'

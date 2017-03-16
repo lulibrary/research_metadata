@@ -43,7 +43,7 @@ module ResearchMetadata
             contributors: person_o['contributor'],
             language: language,
             resource_type: resource_type,
-            sizes: sizes(file_o) << pages,
+            sizes: sizes(file_o),
             formats: formats(file_o),
             rights_list: rights_list(file_o),
             descriptions: description
@@ -54,11 +54,18 @@ module ResearchMetadata
       private
 
       def pages
-        "#{@publication.pages} pages"
+        count = @publication.pages
+        if count > 0
+          return "#{count} pages"
+        else
+          return nil
+        end
       end
 
       def sizes(files)
-        files.map { |i| i.size }
+        arr = files.map { |i| "#{i.size} B" }
+        arr << pages if pages
+        arr
       end
 
       def formats(files)
@@ -180,7 +187,7 @@ module ResearchMetadata
       end
 
       def publisher
-        @publication.publisher
+        @publication.publisher || 'Not specified'
       end
 
       def resource_type
