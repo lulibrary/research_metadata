@@ -1,6 +1,6 @@
 # ResearchMetadata
 
-Extraction and Transformation for Loading by DataCite's API.
+Metadata extraction from the Pure Research Information System and transformation of the metadata into the DataCite format.
 
 ## Status
 
@@ -26,33 +26,38 @@ Or install it yourself as:
 ## Usage
 
 ### Configuration
-Configure Pur&#233;e.
+
+Create a hash for passing to a transformer.
 
 ```ruby
-Puree.base_url   = ENV['PURE_BASE_URL']
-Puree.username   = ENV['PURE_USERNAME']
-Puree.password   = ENV['PURE_PASSWORD']
-Puree.basic_auth = true
+# Pure host with authentication.
+config = {
+  url:      ENV['PURE_URL'],
+  username: ENV['PURE_USERNAME'],
+  password: ENV['PURE_PASSWORD']
+}
+```
+
+```ruby
+# Pure host without authentication.
+config = {
+  url: ENV['PURE_URL']
+}
 ```
 
 ### Transformation
 
-Create a metadata transformer for a Pure dataset...
+Create a metadata transformer for a Pure dataset.
 
 ```ruby
-transformer = ResearchMetadata::Transformer::Dataset.new
+transformer = ResearchMetadata::Transformer::Dataset.new config
 ```
 
-...and give it a Pure identifier and a DOI...
+Give it a Pure identifier and a DOI...
 
 ```ruby
 metadata = transformer.transform uuid: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
                                  doi: '10.1234/foo/bar/1'
 ```
 
-...to get DataCite-ready metadata.
-
-## Documentation
-[API in YARD](http://www.rubydoc.info/gems/research_metadata)
-
-[Detailed usage in GitBook](https://aalbinclark.gitbooks.io/research_metadata)
+...and get DataCite-ready metadata.
