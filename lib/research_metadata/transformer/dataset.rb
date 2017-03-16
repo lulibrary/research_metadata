@@ -27,7 +27,7 @@ module ResearchMetadata
       # @return [String]
       def transform(id: nil, uuid: nil, doi: nil)
         @dataset = extract uuid: uuid, id: id
-        raise 'No metadata to transform' if @dataset.nil?
+        raise 'No metadata to transform' if !@dataset
         person_o = person
         file_o = file
         resource = ::Datacite::Mapping::Resource.new(

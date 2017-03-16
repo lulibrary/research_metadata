@@ -27,9 +27,12 @@ module ResearchMetadata
       # @return [String]
       def transform(id: nil, uuid: nil, doi: nil)
         @publication = extract uuid: uuid, id: id
-        raise 'No metadata to transform' if @publication.nil?
+        return nil if !publication_year
+        raise 'No metadata to transform' if !@publication
+        raise 'No publication year' if !publication_year
         person_o = person
         file_o = file
+        puts @publication.uuid
         resource = ::Datacite::Mapping::Resource.new(
             identifier: identifier(doi),
             creators: person_o['creator'],
@@ -66,8 +69,7 @@ module ResearchMetadata
         arr = []
         files.each do |i|
           if i.license
-            rights = Datacite::Mapping::Rights.new uri: URI(i.license.url),
-                                                   value: i.license.name
+            rights = Datacite::Mapping::Rights.new value: i.license.name
             arr << rights
           else
             arr << 'Not specified'
