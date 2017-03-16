@@ -6,9 +6,9 @@ module ResearchMetadata
   #
   module Transformer
 
-    # Dataset
+    # Publication
     #
-    class Dataset
+    class Publication
 
       # @param config [Hash]
       # @option config [String] :url The URL of the Pure host.
@@ -16,37 +16,34 @@ module ResearchMetadata
       # @option config [String] :password The password of the Pure host account.
       def initialize(config)
         @config = config
-        @dataset_extractor = Puree::Extractor::Dataset.new config
+        @publication_extractor = Puree::Extractor::Publication.new config
       end
 
-      # Dataset transformation
+      # Publication transformation
       #
       # @param id [String]
       # @param uuid [String]
       # @param doi [String]
       # @return [String]
       def transform(id: nil, uuid: nil, doi: nil)
-        @dataset = extract uuid: uuid, id: id
-        raise 'No metadata to transform' if @dataset.nil?
+        @publication = extract uuid: uuid, id: id
+        raise 'No metadata to transform' if @publication.nil?
         person_o = person
         file_o = file
         resource = ::Datacite::Mapping::Resource.new(
             identifier: identifier(doi),
             creators: person_o['creator'],
             titles: [ title ],
-            publisher: publisher,
             publication_year: publication_year,
+            publisher: publisher,
             subjects: subjects,
             contributors: person_o['contributor'],
-            dates: dates,
             language: language,
             resource_type: resource_type,
-            related_identifiers: related_identifiers,
             sizes: sizes(file_o),
             formats: formats(file_o),
             rights_list: rights_list(file_o),
-            descriptions: description,
-            geo_locations: spatial
+            descriptions: description
         )
         resource.write_xml
       end
@@ -79,37 +76,8 @@ module ResearchMetadata
         person.affiliations.map { |i| i.name }
       end
 
-      def dates
-        a = []
-
-        available = @dataset.available
-        if available
-          date_made_available = ::Datacite::Mapping::Date.new value: available.strftime("%F"),
-                                                    type: ::Datacite::Mapping::DateType::AVAILABLE
-          a << date_made_available
-        end
-
-        temporal = @dataset.temporal
-        temporal_range = ''
-        if temporal
-          if temporal.start
-            temporal_range << temporal.start.strftime("%F")
-            if temporal.end
-              temporal_range << '/'
-              temporal_range << temporal.end.strftime("%F")
-            end
-            if !temporal_range.empty?
-              collected = ::Datacite::Mapping::Date.new value: temporal_range,
-                                                        type: ::Datacite::Mapping::DateType::COLLECTED
-              a << collected
-            end
-          end
-        end
-        a
-      end
-
       def description
-        desc = @dataset.description
+        desc = @publication.description
         if desc
           d = ::Datacite::Mapping::Description.new value: desc,
                                              type: ::Datacite::Mapping::DescriptionType::ABSTRACT
@@ -121,14 +89,14 @@ module ResearchMetadata
 
       def extract(uuid: nil, id: nil)
         if !uuid.nil?
-          return @dataset_extractor.find uuid: uuid
+          return @publication_extractor.find uuid: uuid
         else
-          return @dataset_extractor.find id: id
+          return @publication_extractor.find id: id
         end
       end
 
       def file
-        @dataset.files
+        @publication.files
       end
 
       def identifier(doi)
@@ -136,7 +104,7 @@ module ResearchMetadata
       end
 
       def language
-        @dataset.locale
+        @publication.locale
       end
 
       def name_identifier_orcid(person)
@@ -154,18 +122,20 @@ module ResearchMetadata
         o['creator'] = []
         o['contributor'] = []
         all_persons = []
-        all_persons << @dataset.persons_internal
-        all_persons << @dataset.persons_external
-        all_persons << @dataset.persons_other
+        all_persons << @publication.persons_internal
+        all_persons << @publication.persons_external
+        all_persons << @publication.persons_other
         all_persons.each do |person_type|
           person_type.each do |individual|
             pure_role =individual.role.gsub(/\s+/, '')
+            role = pure_role
             name = individual.name.last_first
-            if pure_role == 'Creator'
+            role = 'Creator' if pure_role === 'Author'
+            if role == 'Creator'
               human = ::Datacite::Mapping::Creator.new name: name
             else
-              pure_role = 'Other' if pure_role === 'Contributor'
-              contributor_type = ::Datacite::Mapping::ContributorType.find_by_value pure_role
+              role = 'Other' if pure_role === 'Contributor'
+              contributor_type = ::Datacite::Mapping::ContributorType.find_by_value role
               if contributor_type
                 human = ::Datacite::Mapping::Contributor.new  name: name,
                                                               type: contributor_type
@@ -183,7 +153,7 @@ module ResearchMetadata
                   human.affiliations = affiliation if affiliation
                 end
               end
-              if individual.role == 'Creator'
+              if role == 'Creator'
                 o['creator'] << human
               else
                 o['contributor'] << human
@@ -195,72 +165,31 @@ module ResearchMetadata
       end
 
       def publication_year
-        @dataset.available.year
+        @publication.statuses.each do |i|
+          if i.stage === 'Published'
+            return i.date.year
+          end
+        end
+        nil
       end
 
       def publisher
-        @dataset.publisher
-      end
-
-      def related_identifiers
-        publications = @dataset.publications
-        data = []
-        publications.each do |i|
-          # Skip as the relationship cannot currently be determined
-          next if i.type === 'Dataset'
-
-          publication_extractor = Puree::Extractor::Publication.new @config
-          pub = publication_extractor.find uuid: i.uuid
-
-          # Restrict to those with a DOI
-          doi = pub.doi if pub.methods.include? :doi
-
-          if doi
-            doi_part_to_remove = 'http://dx.doi.org/'
-            doi_short = doi.gsub(doi_part_to_remove, '')
-            doi_short.gsub!('/', '-')
-            related_identifier =
-                ::Datacite::Mapping::RelatedIdentifier.new(
-                    value: doi_short,
-                    identifier_type: ::Datacite::Mapping::RelatedIdentifierType::DOI,
-                    relation_type: ::Datacite::Mapping::RelationType::IS_REFERENCED_BY)
-            data << related_identifier
-          end
-        end
-        data
+        @publication.publisher
       end
 
       def resource_type
         ::Datacite::Mapping::ResourceType.new(
-            resource_type_general: ::Datacite::Mapping::ResourceTypeGeneral::DATASET,
-            value: 'Dataset'
+            resource_type_general: ::Datacite::Mapping::ResourceTypeGeneral::TEXT,
+            value: 'Text'
         )
       end
 
-      def spatial
-        # Pure has free text to list place names and does not allow a point to
-        # be associated with a specific place
-
-        # Place names
-        arr = @dataset.spatial_places.map { |i| ::Datacite::Mapping::GeoLocation.new place: i }
-
-        # Lat Long point
-        spatial_point = @dataset.spatial_point
-        if spatial_point
-          point = ::Datacite::Mapping::GeoLocationPoint.new latitude:  spatial_point.latitude,
-                                                            longitude: spatial_point.longitude
-          geolocation = ::Datacite::Mapping::GeoLocation.new point: point
-          arr << geolocation
-        end
-        arr
-      end
-
       def subjects
-        @dataset.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
+        @publication.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
       end
 
       def title
-        ::Datacite::Mapping::Title.new value: @dataset.title
+        ::Datacite::Mapping::Title.new value: @publication.title
       end
 
     end
