@@ -40,7 +40,7 @@ module ResearchMetadata
             contributors: person_o['contributor'],
             language: language,
             resource_type: resource_type,
-            sizes: sizes(file_o),
+            sizes: sizes(file_o) << pages,
             formats: formats(file_o),
             rights_list: rights_list(file_o),
             descriptions: description
@@ -49,6 +49,10 @@ module ResearchMetadata
       end
 
       private
+
+      def pages
+        "#{@publication.pages} pages"
+      end
 
       def sizes(files)
         files.map { |i| i.size }
