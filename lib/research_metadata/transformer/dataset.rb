@@ -1,12 +1,9 @@
-# Extraction (from Pure) and Transformation for Loading by DataCite's API
-#
 module ResearchMetadata
 
-  # Transformer
-  #
   module Transformer
 
-    # Dataset
+    # Extracts dataset metadata from the Pure Research Information System and
+    # converts it into the DataCite format.
     #
     class Dataset
 

@@ -1,12 +1,10 @@
-# Extraction (from Pure) and Transformation for Loading by DataCite's API
-#
 module ResearchMetadata
 
-  # Transformer
-  #
   module Transformer
 
-    # Publication
+    # Extracts publication metadata from the Pure Research Information System
+    # and converts it into the DataCite format. Example usage is for theses
+    # (doctoral and master's).
     #
     class Publication
 
@@ -77,7 +75,7 @@ module ResearchMetadata
             rights = Datacite::Mapping::Rights.new value: i.license.name
             arr << rights
           else
-            arr << 'Not specified'
+            arr << 'License unspecified'
           end
         end
         arr
