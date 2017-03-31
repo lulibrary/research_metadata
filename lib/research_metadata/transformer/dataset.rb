@@ -65,7 +65,7 @@ module ResearchMetadata
             rights = Datacite::Mapping::Rights.new value: i.license.name
             arr << rights
           else
-            arr << 'Not specified'
+            arr << 'License unspecified'
           end
         end
         arr
