@@ -3,8 +3,7 @@ module ResearchMetadata
   module Transformer
 
     # Extracts publication metadata from the Pure Research Information System
-    # and converts it into the DataCite format. Example usage is for theses
-    # (doctoral and master's).
+    # and converts it into the DataCite format.
     #
     class Publication
 
@@ -49,18 +48,8 @@ module ResearchMetadata
 
       private
 
-      def pages
-        count = @publication.pages
-        if count > 0
-          return "#{count} pages"
-        else
-          return nil
-        end
-      end
-
       def sizes(files)
         arr = files.map { |i| "#{i.size} B" }
-        arr << pages if pages
         arr
       end
 
@@ -183,7 +172,7 @@ module ResearchMetadata
       end
 
       def publisher
-        @publication.publisher || 'Not specified'
+        @publication.publisher || 'Publisher unspecified'
       end
 
       def resource_type

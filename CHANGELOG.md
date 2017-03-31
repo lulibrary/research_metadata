@@ -4,9 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 1.1.0 2017-03-31
+### Added
+- Transformer - thesis (Doctoral/Master's).
+
 ## 1.0.0 2017-03-15
 ### Added
-- Publications e.g. Doctoral/Master's Thesis.
+- Transformer - publication.
 
 ### Changed
 - Configuration style to match Puree v1.0.0.
