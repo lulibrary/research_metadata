@@ -4,6 +4,7 @@ module ResearchMetadata
 
     # Extracts publication metadata from the Pure Research Information System
     # and converts it into the DataCite format.
+    # For text-based resources.
     #
     class Publication
 
