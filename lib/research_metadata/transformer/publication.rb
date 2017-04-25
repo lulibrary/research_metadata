@@ -26,7 +26,6 @@ module ResearchMetadata
       def transform(id: nil, uuid: nil, doi: nil)
         @publication = extract uuid: uuid, id: id
         return nil if !@publication
-        return nil if !publication_year
         person_o = person
         file_o = file
         resource = ::Datacite::Mapping::Resource.new(
@@ -165,7 +164,7 @@ module ResearchMetadata
 
       def publication_year
         @publication.statuses.each do |i|
-          if i.stage === 'Published'
+          if i.stage === 'Published' || i.stage === 'Unpublished'
             return i.date.year
           end
         end

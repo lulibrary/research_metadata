@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 1.1.1 2017-04-25
+### Fixed
+- Transformer - publication (and subclasses) - enable unpublished works.
+
 ## 1.1.0 2017-03-31
 ### Added
 - Transformer - thesis (Doctoral/Master's).
