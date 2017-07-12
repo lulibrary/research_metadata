@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 1.1.2 2017-07-12
+### Fixed
+- Transformer - thesis - handle missing number of pages.
+
 ## 1.1.1 2017-04-25
 ### Fixed
 - Transformer - publication (and subclasses) - enable unpublished works.

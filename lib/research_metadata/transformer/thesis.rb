@@ -21,7 +21,7 @@ module ResearchMetadata
 
       def pages
         count = @publication.pages
-        if count > 0
+        if count && count > 0
           return "#{count} pages"
         else
           return nil
