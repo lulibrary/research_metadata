@@ -3,18 +3,12 @@ require 'spec_helper'
 describe 'Dataset' do
 
   def setup
-    @config = {
-        url:      ENV['PURE_URL_TEST_59'],
-        username: ENV['PURE_USERNAME'],
-        password: ENV['PURE_PASSWORD'],
-        api_key:  ENV['PURE_API_KEY']
-    }
-    @t = ResearchMetadata::Transformer::Dataset.new @config
+    @t = ResearchMetadata::Transformer::Dataset.new config
   end
 
   it '#new' do
     setup
-    t = ResearchMetadata::Transformer::Dataset.new @config
+    t = ResearchMetadata::Transformer::Dataset.new config
     expect(t).to be_a ResearchMetadata::Transformer::Dataset
   end
 
@@ -32,7 +26,7 @@ describe 'Dataset' do
       is_xml = metadata.downcase.start_with?('<resource')
       expect(is_xml).to match(true)
 
-      puts metadata
+      # puts metadata
     end
 
   end

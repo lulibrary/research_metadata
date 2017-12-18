@@ -124,7 +124,7 @@ module ResearchMetadata
       end
 
       # def language
-      #   @dataset.locale
+      #   @dataset.language
       # end
 
       def name_identifier_orcid(person)

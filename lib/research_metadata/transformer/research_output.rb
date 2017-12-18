@@ -2,11 +2,11 @@ module ResearchMetadata
 
   module Transformer
 
-    # Extracts publication metadata from the Pure Research Information System
+    # Extracts research output metadata from the Pure Research Information System
     # and converts it into the DataCite format.
     # For text-based resources.
     #
-    class Publication
+    class ResearchOutput
 
       # @param config [Hash]
       # @option config [String] :url URL of the Pure host
@@ -15,18 +15,17 @@ module ResearchMetadata
       # @option config [String] :api_key API key of the Pure host account
       def initialize(config)
         @config = config
-        @publication_extractor = Puree::Extractor::Publication.new config
+        @research_output_extractor = Puree::Extractor::ResearchOutput.new config
       end
 
-      # Publication transformation
+      # Research output transformation
       #
       # @param id [String]
-      # @param uuid [String]
       # @param doi [String]
       # @return [String, nil]
-      def transform(id: nil, uuid: nil, doi: nil)
-        @publication = extract uuid: uuid, id: id
-        return nil if !@publication
+      def transform(id:, doi:)
+        @research_output = @research_output_extractor.find id
+        return nil if !@research_output
         person_o = person
         file_o = file
         resource = ::Datacite::Mapping::Resource.new(
@@ -76,7 +75,7 @@ module ResearchMetadata
       end
 
       def description
-        desc = @publication.description
+        desc = @research_output.description
         if desc
           d = ::Datacite::Mapping::Description.new value: desc,
                                              type: ::Datacite::Mapping::DescriptionType::ABSTRACT
@@ -86,16 +85,8 @@ module ResearchMetadata
         end
       end
 
-      def extract(uuid: nil, id: nil)
-        if !uuid.nil?
-          return @publication_extractor.find uuid: uuid
-        else
-          return @publication_extractor.find id: id
-        end
-      end
-
       def file
-        @publication.files
+        @research_output.files
       end
 
       def identifier(doi)
@@ -103,7 +94,7 @@ module ResearchMetadata
       end
 
       def language
-        @publication.locale
+        @research_output.language
       end
 
       def name_identifier_orcid(person)
@@ -121,9 +112,9 @@ module ResearchMetadata
         o['creator'] = []
         o['contributor'] = []
         all_persons = []
-        all_persons << @publication.persons_internal
-        all_persons << @publication.persons_external
-        all_persons << @publication.persons_other
+        all_persons << @research_output.persons_internal
+        all_persons << @research_output.persons_external
+        all_persons << @research_output.persons_other
         all_persons.each do |person_type|
           person_type.each do |individual|
             pure_role =individual.role.gsub(/\s+/, '')
@@ -143,7 +134,7 @@ module ResearchMetadata
             if human
               if individual.uuid
                 person_extractor = Puree::Extractor::Person.new @config
-                person = person_extractor.find uuid: individual.uuid
+                person = person_extractor.find individual.uuid
                 if person
                   identifier = name_identifier_orcid person
                   human.identifier = identifier if identifier
@@ -164,16 +155,12 @@ module ResearchMetadata
       end
 
       def publication_year
-        @publication.statuses.each do |i|
+        @research_output.publication_statuses.each do |i|
           if i.stage === 'Published' || i.stage === 'Unpublished'
             return i.date.year
           end
         end
         nil
-      end
-
-      def publisher
-        @publication.publisher || 'Publisher unspecified'
       end
 
       def resource_type
@@ -184,14 +171,14 @@ module ResearchMetadata
       end
 
       def subjects
-        @publication.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
+        @research_output.keywords.map { |i| ::Datacite::Mapping::Subject.new value: i }
       end
 
       def titles
         arr = []
-        title = ::Datacite::Mapping::Title.new value: @publication.title
+        title = ::Datacite::Mapping::Title.new value: @research_output.title
         arr << title
-        subtitle = @publication.subtitle
+        subtitle = @research_output.subtitle
         if subtitle
           arr << ::Datacite::Mapping::Title.new(value: subtitle,
                                                 type: ::Datacite::Mapping::TitleType::SUBTITLE)
