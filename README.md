@@ -40,7 +40,7 @@ config = {
 
 ### Transformation
 
-Create a metadata transformer for a Pure dataset.
+Configure a transformer for a Pure dataset.
 
 ```ruby
 transformer = ResearchMetadata::Transformer::Dataset.new config
