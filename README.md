@@ -30,18 +30,11 @@ Or install it yourself as:
 Create a hash for passing to a transformer.
 
 ```ruby
-# Pure host with authentication.
 config = {
-  url:      ENV['PURE_URL'],
-  username: ENV['PURE_USERNAME'],
-  password: ENV['PURE_PASSWORD']
-}
-```
-
-```ruby
-# Pure host without authentication.
-config = {
-  url: ENV['PURE_URL']
+  url:      'https://YOUR_HOST/ws/api/59',
+  username: 'YOUR_USERNAME',
+  password: 'YOUR_PASSWORD',
+  api_key:  'YOUR_API_KEY'
 }
 ```
 
@@ -56,7 +49,7 @@ transformer = ResearchMetadata::Transformer::Dataset.new config
 Give it a Pure identifier and a DOI...
 
 ```ruby
-metadata = transformer.transform uuid: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
+metadata = transformer.transform id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
                                  doi: '10.1234/foo/bar/1'
 ```
 

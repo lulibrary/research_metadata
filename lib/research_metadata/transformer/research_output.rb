@@ -5,6 +5,7 @@ module ResearchMetadata
     # Extracts research output metadata from the Pure Research Information System
     # and converts it into the DataCite format.
     # For text-based resources.
+    # @note Do not use directly.
     #
     class ResearchOutput
 
