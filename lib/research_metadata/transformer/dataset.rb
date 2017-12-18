@@ -8,9 +8,10 @@ module ResearchMetadata
     class Dataset
 
       # @param config [Hash]
-      # @option config [String] :url The URL of the Pure host.
-      # @option config [String] :username The username of the Pure host account.
-      # @option config [String] :password The password of the Pure host account.
+      # @option config [String] :url URL of the Pure host
+      # @option config [String] :username Username of the Pure host account
+      # @option config [String] :password Password of the Pure host account
+      # @option config [String] :api_key API key of the Pure host account
       def initialize(config)
         @config = config
         @dataset_extractor = Puree::Extractor::Dataset.new config
@@ -19,11 +20,10 @@ module ResearchMetadata
       # Dataset transformation
       #
       # @param id [String]
-      # @param uuid [String]
       # @param doi [String]
       # @return [String, nil]
-      def transform(id: nil, uuid: nil, doi: nil)
-        @dataset = extract uuid: uuid, id: id
+      def transform(id:, doi:)
+        @dataset = @dataset_extractor.find id
         return nil if !@dataset
         person_o = person
         file_o = file
@@ -36,11 +36,11 @@ module ResearchMetadata
             subjects: subjects,
             contributors: person_o['contributor'],
             dates: dates,
-            language: language,
+            # language: language,
             resource_type: resource_type,
             related_identifiers: related_identifiers,
-            sizes: sizes(file_o),
-            formats: formats(file_o),
+            # sizes: sizes(file_o),
+            # formats: formats(file_o),
             rights_list: rights_list(file_o),
             descriptions: description,
             geo_locations: spatial
@@ -50,13 +50,13 @@ module ResearchMetadata
 
       private
 
-      def sizes(files)
-        files.map { |i| "#{i.size} B" }
-      end
+      # def sizes(files)
+      #   files.map { |i| "#{i.size} B" }
+      # end
 
-      def formats(files)
-        files.map { |i| i.mime }
-      end
+      # def formats(files)
+      #   files.map { |i| i.mime }
+      # end
 
       def rights_list(files)
         arr = []
@@ -115,14 +115,6 @@ module ResearchMetadata
         end
       end
 
-      def extract(uuid: nil, id: nil)
-        if !uuid.nil?
-          return @dataset_extractor.find uuid: uuid
-        else
-          return @dataset_extractor.find id: id
-        end
-      end
-
       def file
         @dataset.files
       end
@@ -131,9 +123,9 @@ module ResearchMetadata
         ::Datacite::Mapping::Identifier.new(value: doi)
       end
 
-      def language
-        @dataset.locale
-      end
+      # def language
+      #   @dataset.locale
+      # end
 
       def name_identifier_orcid(person)
         name_identifier = nil
@@ -170,7 +162,7 @@ module ResearchMetadata
             if human
               if individual.uuid
                 person_extractor = Puree::Extractor::Person.new @config
-                person = person_extractor.find uuid: individual.uuid
+                person = person_extractor.find individual.uuid
                 if person
                   identifier = name_identifier_orcid person
                   human.identifier = identifier if identifier
@@ -195,21 +187,21 @@ module ResearchMetadata
       end
 
       def publisher
-        @dataset.publisher
+        @dataset.publisher.name
       end
 
       def related_identifiers
-        publications = @dataset.publications
+        research_outputs = @dataset.research_outputs
         data = []
-        publications.each do |i|
+        research_outputs.each do |i|
           # Skip as the relationship cannot currently be determined
           next if i.type === 'Dataset'
 
-          publication_extractor = Puree::Extractor::Publication.new @config
-          pub = publication_extractor.find uuid: i.uuid
+          research_output_extractor = Puree::Extractor::ResearchOutput.new @config
+          research_output = research_output_extractor.find i.uuid
 
           # Restrict to those with a DOI
-          doi = pub.doi if pub.methods.include? :doi
+          doi = research_output.doi if research_output.methods.include? :doi
 
           if doi
             doi_part_to_remove = 'http://dx.doi.org/'

@@ -9,9 +9,10 @@ module ResearchMetadata
     class Thesis < ResearchMetadata::Transformer::Publication
 
       # @param config [Hash]
-      # @option config [String] :url The URL of the Pure host.
-      # @option config [String] :username The username of the Pure host account.
-      # @option config [String] :password The password of the Pure host account.
+      # @option config [String] :url URL of the Pure host
+      # @option config [String] :username Username of the Pure host account
+      # @option config [String] :password Password of the Pure host account
+      # @option config [String] :api_key API key of the Pure host account
       def initialize(config)
         @config = config
         @publication_extractor = Puree::Extractor::Thesis.new config

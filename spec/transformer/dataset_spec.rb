@@ -4,9 +4,10 @@ describe 'Dataset' do
 
   def setup
     @config = {
-        url:      ENV['PURE_URL'],
+        url:      ENV['PURE_URL_TEST_59'],
         username: ENV['PURE_USERNAME'],
-        password: ENV['PURE_PASSWORD']
+        password: ENV['PURE_PASSWORD'],
+        api_key:  ENV['PURE_API_KEY']
     }
     @t = ResearchMetadata::Transformer::Dataset.new @config
   end
@@ -22,14 +23,16 @@ describe 'Dataset' do
       setup
     end
 
-    it '#transform with random UUID' do
-      c = Puree::Extractor::Collection.new resource: :dataset,
-                                           config: @config
-      res = c.random_resource
-      metadata = @t.transform uuid: res.uuid,
-                              doi:  '10.1234/foo/bar/1'
+    it '#transform with known UUID' do
+      # The 2014 Ebola virus disease outbreak in West Africa
+      id = 'b050f4b5-e272-4914-8cac-3bdc1e673c58'
+
+      metadata = @t.transform id: id,
+                              doi: '10.1234/foo/bar/1'
       is_xml = metadata.downcase.start_with?('<resource')
       expect(is_xml).to match(true)
+
+      puts metadata
     end
 
   end
