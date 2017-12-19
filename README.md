@@ -5,9 +5,7 @@ Metadata extraction from the Pure Research Information System and transformation
 ## Status
 
 [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata)
-[![Build Status](https://semaphoreci.com/api/v1/aalbinclark/research_metadata/branches/master/badge.svg)](https://semaphoreci.com/aalbinclark/research_metadata)
-[![Code Climate](https://codeclimate.com/github/lulibrary/research_metadata/badges/gpa.svg)](https://codeclimate.com/github/lulibrary/research_metadata)
-[![Dependency Status](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6)
+[![Maintainability](https://api.codeclimate.com/v1/badges/26080a93183c7fcdf525/maintainability)](https://codeclimate.com/github/lulibrary/research_metadata/maintainability)
 
 ## Installation
 
