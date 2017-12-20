@@ -184,6 +184,11 @@ module ResearchMetadata
           arr << ::Datacite::Mapping::Title.new(value: subtitle,
                                                 type: ::Datacite::Mapping::TitleType::SUBTITLE)
         end
+        translated_title = @research_output.translated_title
+        if translated_title
+          arr << ::Datacite::Mapping::Title.new(value: translated_title,
+                                                type: ::Datacite::Mapping::TitleType::TRANSLATED_TITLE)
+        end
         arr
       end
 
