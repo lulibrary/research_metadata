@@ -17,7 +17,7 @@ class TestTransformerThesis < Minitest::Test
     metadata = transformer.transform id: id,
                                      doi: '10.1234/foo/bar/1'
 
-    puts metadata
+    # puts metadata
 
     assert_equal true, metadata.downcase.start_with?('<resource')
   end
@@ -29,7 +29,7 @@ class TestTransformerThesis < Minitest::Test
     metadata = transformer.transform id: id,
                                      doi: '10.1234/foo/bar/1'
 
-    puts metadata
+    # puts metadata
 
     assert_equal true, metadata.downcase.start_with?('<resource')
   end
