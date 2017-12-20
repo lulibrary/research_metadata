@@ -5,9 +5,7 @@ Metadata extraction from the Pure Research Information System and transformation
 ## Status
 
 [![Gem Version](https://badge.fury.io/rb/research_metadata.svg)](https://badge.fury.io/rb/research_metadata)
-[![Build Status](https://semaphoreci.com/api/v1/aalbinclark/research_metadata/branches/master/badge.svg)](https://semaphoreci.com/aalbinclark/research_metadata)
-[![Code Climate](https://codeclimate.com/github/lulibrary/research_metadata/badges/gpa.svg)](https://codeclimate.com/github/lulibrary/research_metadata)
-[![Dependency Status](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5899d1be1e07ae0048c8e4c6)
+[![Maintainability](https://api.codeclimate.com/v1/badges/26080a93183c7fcdf525/maintainability)](https://codeclimate.com/github/lulibrary/research_metadata/maintainability)
 
 ## Installation
 
@@ -30,24 +28,17 @@ Or install it yourself as:
 Create a hash for passing to a transformer.
 
 ```ruby
-# Pure host with authentication.
 config = {
-  url:      ENV['PURE_URL'],
-  username: ENV['PURE_USERNAME'],
-  password: ENV['PURE_PASSWORD']
-}
-```
-
-```ruby
-# Pure host without authentication.
-config = {
-  url: ENV['PURE_URL']
+  url:      'https://YOUR_HOST/ws/api/59',
+  username: 'YOUR_USERNAME',
+  password: 'YOUR_PASSWORD',
+  api_key:  'YOUR_API_KEY'
 }
 ```
 
 ### Transformation
 
-Create a metadata transformer for a Pure dataset.
+Configure a transformer for a Pure dataset.
 
 ```ruby
 transformer = ResearchMetadata::Transformer::Dataset.new config
@@ -56,7 +47,7 @@ transformer = ResearchMetadata::Transformer::Dataset.new config
 Give it a Pure identifier and a DOI...
 
 ```ruby
-metadata = transformer.transform uuid: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
+metadata = transformer.transform id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx',
                                  doi: '10.1234/foo/bar/1'
 ```
 

@@ -4,23 +4,23 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'research_metadata/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "research_metadata"
+  spec.name          = 'research_metadata'
   spec.version       = ResearchMetadata::VERSION
-  spec.authors       = ["Adrian Albin-Clark"]
-  spec.email         = ["a.albin-clark@lancaster.ac.uk"]
+  spec.authors       = 'Adrian Albin-Clark'
+  spec.email         = 'a.albin-clark@lancaster.ac.uk'
   spec.summary       = %q{Metadata extraction from the Pure Research Information System and transformation of the metadata into the DataCite format.}
-  spec.homepage      = "https://github.com/lulibrary/research_metadata"
-  spec.license       = "MIT"
+  spec.homepage      = 'https://github.com/lulibrary/research_metadata'
+  spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
-  spec.require_paths = ["lib"]
+  spec.require_paths = ['lib']
 
   spec.required_ruby_version = '~> 2.1'
 
-  spec.add_runtime_dependency "puree", "~> 1.2.0"
-  spec.add_runtime_dependency "datacite-mapping", "~> 0.2.5"
+  spec.add_runtime_dependency 'puree', '~> 2.0'
+  spec.add_runtime_dependency 'datacite-mapping', '~> 0.2.5'
 
-  spec.add_development_dependency "rspec"
+  spec.add_development_dependency 'minitest-reporters', '~> 1.1'
 end
