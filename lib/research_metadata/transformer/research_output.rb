@@ -25,26 +25,30 @@ module ResearchMetadata
       # @param doi [String]
       # @return [String, nil]
       def transform(id:, doi:)
-        @research_output = @research_output_extractor.find id
-        return nil if !@research_output
-        person_o = person
-        file_o = file
-        resource = ::Datacite::Mapping::Resource.new(
-            identifier: identifier(doi),
-            creators: person_o['creator'],
-            titles: titles,
-            publication_year: publication_year,
-            publisher: publisher,
-            subjects: subjects,
-            contributors: person_o['contributor'],
-            language: language,
-            resource_type: resource_type,
-            sizes: sizes(file_o),
-            formats: formats(file_o),
-            rights_list: rights_list(file_o),
-            descriptions: description
-        )
-        resource.write_xml
+        begin
+          @research_output = @research_output_extractor.find id
+          return nil if !@research_output
+          person_o = person
+          file_o = file
+          resource = ::Datacite::Mapping::Resource.new(
+              identifier: identifier(doi),
+              creators: person_o['creator'],
+              titles: titles,
+              publication_year: publication_year,
+              publisher: publisher,
+              subjects: subjects,
+              contributors: person_o['contributor'],
+              language: language,
+              resource_type: resource_type,
+              sizes: sizes(file_o),
+              formats: formats(file_o),
+              rights_list: rights_list(file_o),
+              descriptions: description
+          )
+          resource.write_xml
+        rescue => error
+          raise error
+        end
       end
 
       private
