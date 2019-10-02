@@ -9,7 +9,7 @@ require 'research_metadata'
 
 def config
   {
-      url:      ENV['PURE_URL_TEST_59'],
+      url:      ENV['PURE_URL'],
       username: ENV['PURE_USERNAME'],
       password: ENV['PURE_PASSWORD'],
       api_key:  ENV['PURE_API_KEY']
